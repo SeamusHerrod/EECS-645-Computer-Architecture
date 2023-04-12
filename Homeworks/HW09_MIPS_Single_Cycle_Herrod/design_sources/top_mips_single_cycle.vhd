@@ -171,15 +171,43 @@ BEGIN
         PC_next => PC_next,
         PC_current => PC_current,
         clk => clk,
-        rst => rst
+        rst => rst,
+	
     );
    
-   InstrMem_inst : InstrMem
-    PORT MAP (
-        
-    );
+		
+    InstrMem_inst : InstrMem
+	   PORT map ( 
+	      A     => InstrMem_A ,
+	      rst   => rst,
+	      Instr => InstrMem_Instr
+	   );
+	InstrMem_A <= PC_current;
+	
 
 
+
+	ALU_inst : ALU
+	   PORT MAP( 
+	      A    	  => ALU_A, 
+	      ALUControl  => ALU_ALUControl, 
+	      B           => ALU_B,
+	      C           => ALU_C,
+	      zero        => ALU_zero,
+	      overflow    => ALU_overflow
+	   );
+	
+		
+	DataMem_inst : DataMem
+	   PORT MAP( 
+	      A    	=> DataMem_A ,
+	      MemWrite  => DataMem_MemWrite,
+	      WD        => DataMem_WD,
+	      clk       => clk,
+	      rst       => rst,
+	      RD        => DataMem_RD 
+	   );
+	DataMem_A <= ALU_C;
    ----------------------------------
 
 END struct;
