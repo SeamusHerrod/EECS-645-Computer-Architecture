@@ -171,11 +171,9 @@ BEGIN
         PC_next => PC_next,
         PC_current => PC_current,
         clk => clk,
-        rst => rst,
-	
-    );
-   
-		
+        rst => rst
+        );
+   	
     InstrMem_inst : InstrMem
 	   PORT map ( 
 	      A     => InstrMem_A ,
@@ -184,23 +182,22 @@ BEGIN
 	   );
 	InstrMem_A <= PC_current;
 	
-
-
-
 	ALU_inst : ALU
 	   PORT MAP( 
-	      A    	  => ALU_A, 
+	      A    	      => ALU_A, 
 	      ALUControl  => ALU_ALUControl, 
 	      B           => ALU_B,
 	      C           => ALU_C,
 	      zero        => ALU_zero,
 	      overflow    => ALU_overflow
 	   );
+	   ALU_ALUControl <= CU_ALUControl;
+	   ALU_A <= RegFile_RD1;
 	
 		
 	DataMem_inst : DataMem
 	   PORT MAP( 
-	      A    	=> DataMem_A ,
+	      A    	    => DataMem_A ,
 	      MemWrite  => DataMem_MemWrite,
 	      WD        => DataMem_WD,
 	      clk       => clk,
@@ -208,6 +205,36 @@ BEGIN
 	      RD        => DataMem_RD 
 	   );
 	DataMem_A <= ALU_C;
+	DataMem_MemWrite <= CU_MemWrite;
+	
+	CU_inst : CU
+	   PORT MAP( 
+	      Instr       => CU_Instr,
+	      ALUControl  => CU_ALUControl,
+	      ALUSrc      => CU_ALUSrc,
+	      BEQ         => CU_BEQ,
+	      J           => CU_J,
+	      MemToReg    => CU_MemToReg,
+	      MemWrite    => CU_MemWrite,
+	      RegDst      => CU_RegDst,
+	      RegWrite    => CU_RegWrite 
+	   );
+	   
+     RegFile_inst : RegFile
+	   PORT MAP( 
+	      RA1      => RegFile_RA1,
+	      RA2      => RegFile_RA2,
+	      RegWrite => RegFile_RegWrite,
+	      WA       => RegFile_WA,
+	      WD       => RegFile_WD,
+	      clk      => clk,
+	      rst      => rst,
+	      RD1      => RegFile_RD1,
+	      RD2      => RegFile_RD2
+	   );
+    RegFile_RegWrite <= CU_RegWrite;
+    RegFile_RA1 <= InstrMem_Instr(rs_end downto rs_start);
+    RegFile_RA2 <= InstrMem_Instr(rt_end downto rt_start);
    ----------------------------------
 
 END struct;

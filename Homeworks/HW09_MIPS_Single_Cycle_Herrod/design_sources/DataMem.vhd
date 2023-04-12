@@ -28,10 +28,10 @@ BEGIN
    
    ----- insert your code here ------
    Process1: PROCESS ( A, data_mem )
-   BEGIN 
-   -- D0_logic =  4(Zprog - 1) + 4(reg_file_depth) 
-   IF( TO_INTEGER( UNSIGNED( A ) ) > ( 4*(instr_mem_depth - 1) + (4*reg_file_depth) ) AND TO_INTEGER( UNSIGNED( A ) ) < 4*( data_mem_depth - 1 ) ) THEN
-    RD <= data_mem( TO_INTEGER( UNSIGNED( A ) ) );
+   BEGIN
+   IF ( ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 > to_integer( unsigned( data_segment_start ) ) AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 < (to_integer(unsigned(TOS)) - 32 ) ) THEN 
+   --IF( ( to_integer( unsigned( A ) ) - to_integer( unsigned( data_segment_start)) )/4 > data_segment_start AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( data_segment_start)) )/4 < TOS ) THEN
+    RD <= data_mem(( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 );
    ELSE
     RD <= initial_data_mem( 0 );
    END IF;
@@ -44,8 +44,8 @@ BEGIN
     data_mem <= initial_data_mem;
    ELSIF ( clk'EVENT AND clk = '1' ) THEN
     IF ( MemWrite = '1' ) THEN
-        IF ( TO_INTEGER( UNSIGNED ( A ) ) < data_mem_depth ) THEN
-            data_mem( TO_INTEGER( UNSIGNED( A ) ) ) <= WD;
+        IF ( ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 < data_mem_depth ) THEN
+            data_mem(( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 ) <= WD;
         END IF;
     END IF;
    END IF;

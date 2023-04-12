@@ -30,8 +30,48 @@ BEGIN
    -- **************************** --
    
    ----- insert your code here ------
+Process1 : PROCESS( RA1, reg_file )
+    BEGIN
+    
+
+        IF ( TO_INTEGER( UNSIGNED ( RA1 ) ) <= reg_file_depth ) THEN
+            RD1 <= reg_file ( TO_INTEGER( UNSIGNED( RA1 ) ) );
+        ELSIF ( TO_INTEGER( UNSIGNED ( RA1 ) ) > reg_file_depth ) THEN
+            RD1 <= reg_file( 0 );
+        END IF;
+  
+    END PROCESS;
 
 
+    Process2 : PROCESS( RA2, reg_file )
+    BEGIN
+    
+    IF ( TO_INTEGER( UNSIGNED ( RA2 ) ) < reg_file_depth ) THEN
+        RD2 <= reg_file ( TO_INTEGER( UNSIGNED( RA2 ) ) );
+    ElSIF ( TO_INTEGER( UNSIGNED ( RA2 ) ) >= reg_file_depth ) THEN
+        RD2 <= reg_file ( 0 );
+    END IF;
+    
+    END PROCESS;
+
+
+
+    Process3 : PROCESS(RegWrite, WD, WA, clk, rst)
+    BEGIN     
+        IF ( rst = '1' ) THEN
+            reg_file <= initial_reg_file;
+            reg_file(29) <= TOS;
+
+        ELSIF (clk'EVENT AND clk = '1') THEN
+                IF ( RegWrite = '1' ) THEN
+           
+                    IF ( UNSIGNED( WA ) > 0 AND UNSIGNED ( WA ) < reg_file_depth ) THEN
+                        reg_file( TO_INTEGER( UNSIGNED( WA ) ) ) <=  WD;
+                    END IF;
+                END IF;
+        END IF; 
+
+    END PROCESS;
 
    ---------------------------------- 
 

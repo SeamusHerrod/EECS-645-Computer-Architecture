@@ -29,9 +29,10 @@ BEGIN
     
     IF ( rst = '1' ) THEN
         Instr <= zeros;
-        instr_mem <= my_program;
-    ELSIF ( TO_INTEGER( UNSIGNED( ( A - text_segment_start)/4 ) ) > 0 AND TO_INTEGER( UNSIGNED (( A - text_segment_start)/4 ) ) < ( instr_mem_depth ) ) THEN
-        Instr <= instr_mem( TO_INTEGER( UNSIGNED( ( A - text_segment_start)/4 ) ) );    
+        instr_mem <= my_program;    
+    ELSIF ( ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 > 0 AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 < instr_mem_depth ) THEN
+    --ELSIF ( TO_INTEGER( UNSIGNED( ( A - text_segment_start)/4 ) ) ) > 0 AND TO_INTEGER( UNSIGNED ( ( A - text_segment_start)/4 ) ) <  instr_mem_depth ) THEN
+        Instr <= instr_mem( ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 );    
     END IF;
 END PROCESS;
 
