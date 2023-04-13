@@ -27,32 +27,36 @@ BEGIN
    -- **************************** --
    
    ----- insert your code here ------
-   Process1: PROCESS ( A, data_mem )
+   -- Process that combines address guard, and multiplexer for read port
+   ---------------------------------------------------------------------------
+   read_port : PROCESS (A, data_mem)
+   ---------------------------------------------------------------------------
    BEGIN
-   IF ( ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 > to_integer( unsigned( data_segment_start ) ) AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 < (to_integer(unsigned(TOS)) - 32 ) ) THEN 
-   --IF( ( to_integer( unsigned( A ) ) - to_integer( unsigned( data_segment_start)) )/4 > data_segment_start AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( data_segment_start)) )/4 < TOS ) THEN
-    RD <= data_mem(( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 );
-   ELSE
-    RD <= initial_data_mem( 0 );
-   END IF;
-   
-   END PROCESS;
-   
-   Process2: PROCESS ( A, MemWrite, WD, clk, rst, data_mem )
-   BEGIN
-   IF ( rst = '1' ) THEN
-    data_mem <= initial_data_mem;
-   ELSIF ( clk'EVENT AND clk = '1' ) THEN
-    IF ( MemWrite = '1' ) THEN
-        IF ( ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 < data_mem_depth ) THEN
-            data_mem(( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 ) <= WD;
-        END IF;
-    END IF;
-   END IF;
-   
-   END PROCESS;
+      RD <= (OTHERS => '0');
+      IF (( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 > to_integer( unsigned( data_segment_start ) ) AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 < (to_integer(unsigned(TOS)) - 32 )) THEN
+         RD <= data_mem((to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4);
+      END IF;
+   END PROCESS read_port;   
 
+   -- Process that combines inferred registers, write-enable, and address guard for the write port
+   ---------------------------------------------------------------------------
+   write_port : PROCESS (clk, rst)
+   ---------------------------------------------------------------------------
+   BEGIN
+      -- Asynchronous Reset
+      IF (rst = '1') THEN
+         -- Reset Actions
+         data_mem <= initial_data_mem;
+      ELSIF (clk'EVENT AND clk = '1') THEN -- inferred registers
+         -- Write-enable, and address guard for write operation
+         IF ((MemWrite = '1') AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 > to_integer( unsigned( data_segment_start ) ) AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 < (to_integer(unsigned(TOS)) - 32 )) THEN
+            data_mem((to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4) <= WD;
+         END IF;
+      END IF;
+   END PROCESS write_port;
 
    ----------------------------------    
 
 END behav;
+
+

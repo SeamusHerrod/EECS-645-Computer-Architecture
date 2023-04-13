@@ -21,9 +21,16 @@ BEGIN
    -- **************************** --
    
    ----- insert your code here ------
-
-
-
+  PC_reg: process ( clk, rst )
+  BEGIN
+  
+    IF ( rst = '1' ) THEN
+        PC_current <= zeros;
+    ELSIF ( rising_edge( clk ) ) THEN
+        PC_current <= PC_next;
+    END IF;
+  
+  END PROCESS;
    ----------------------------------
    
 END behav;

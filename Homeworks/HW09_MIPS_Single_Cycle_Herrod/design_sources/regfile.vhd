@@ -30,48 +30,44 @@ BEGIN
    -- **************************** --
    
    ----- insert your code here ------
-Process1 : PROCESS( RA1, reg_file )
-    BEGIN
-    
+   ---------------------------------------------------------------------------
+   read_port_1 : PROCESS (RA1, reg_file)
+   ---------------------------------------------------------------------------
+   BEGIN
+      RD1 <= (OTHERS => '0');
+      IF ((TO_INTEGER(UNSIGNED(RA1)) >= 0) AND (TO_INTEGER(UNSIGNED(RA1)) < reg_file_depth)) THEN
+         RD1 <= reg_file(TO_INTEGER(UNSIGNED(RA1)));
+      END IF;
+   END PROCESS read_port_1;
 
-        IF ( TO_INTEGER( UNSIGNED ( RA1 ) ) <= reg_file_depth ) THEN
-            RD1 <= reg_file ( TO_INTEGER( UNSIGNED( RA1 ) ) );
-        ELSIF ( TO_INTEGER( UNSIGNED ( RA1 ) ) > reg_file_depth ) THEN
-            RD1 <= reg_file( 0 );
-        END IF;
-  
-    END PROCESS;
+   -- Process that combines address guard, and multiplexer for read port 2
+   ---------------------------------------------------------------------------
+   read_port_2 : PROCESS (RA2, reg_file)
+   ---------------------------------------------------------------------------
+   BEGIN
+      RD2 <= (OTHERS => '0');
+      IF ((TO_INTEGER(UNSIGNED(RA2)) >= 0) AND (TO_INTEGER(UNSIGNED(RA2)) < reg_file_depth)) THEN
+         RD2 <= reg_file(TO_INTEGER(UNSIGNED(RA2)));
+      END IF;
+   END PROCESS read_port_2;
 
-
-    Process2 : PROCESS( RA2, reg_file )
-    BEGIN
-    
-    IF ( TO_INTEGER( UNSIGNED ( RA2 ) ) < reg_file_depth ) THEN
-        RD2 <= reg_file ( TO_INTEGER( UNSIGNED( RA2 ) ) );
-    ElSIF ( TO_INTEGER( UNSIGNED ( RA2 ) ) >= reg_file_depth ) THEN
-        RD2 <= reg_file ( 0 );
-    END IF;
-    
-    END PROCESS;
-
-
-
-    Process3 : PROCESS(RegWrite, WD, WA, clk, rst)
-    BEGIN     
-        IF ( rst = '1' ) THEN
-            reg_file <= initial_reg_file;
-            reg_file(29) <= TOS;
-
-        ELSIF (clk'EVENT AND clk = '1') THEN
-                IF ( RegWrite = '1' ) THEN
-           
-                    IF ( UNSIGNED( WA ) > 0 AND UNSIGNED ( WA ) < reg_file_depth ) THEN
-                        reg_file( TO_INTEGER( UNSIGNED( WA ) ) ) <=  WD;
-                    END IF;
-                END IF;
-        END IF; 
-
-    END PROCESS;
+   -- Process that combines inferred registers, write-enable, and address guard for the write port
+   ---------------------------------------------------------------------------
+   write_port : PROCESS (clk, rst)
+   ---------------------------------------------------------------------------
+   BEGIN
+      -- Asynchronous Reset
+      IF (rst = '1') THEN
+         -- Reset Actions
+         reg_file <= initial_reg_file;
+         reg_file(29) <= TOS;
+      ELSIF (clk'EVENT AND clk = '1') THEN -- inferred registers
+         -- Write-enable, and address guard for write operation
+         IF ((RegWrite = '1') AND ((TO_INTEGER(UNSIGNED(WA)) > 0) AND (TO_INTEGER(UNSIGNED(WA)) < reg_file_depth))) THEN
+            reg_file(TO_INTEGER(UNSIGNED(WA))) <= WD;
+         END IF;
+      END IF;
+   END PROCESS write_port;
 
    ---------------------------------- 
 

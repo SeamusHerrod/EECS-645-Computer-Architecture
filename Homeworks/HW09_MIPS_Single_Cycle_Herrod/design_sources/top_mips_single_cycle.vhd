@@ -72,7 +72,18 @@ ARCHITECTURE struct OF mips_single_cycle IS
    SIGNAL relative_address        : std_logic_vector (n_bits_address - 1 DOWNTO 0); 
    SIGNAL branch_taken            : std_logic;
 
+   --Mux Signals--
+
    -- Component Declarations
+   
+    COMPONENT Multiplexer
+       PORT ( 
+           SEL : in STD_LOGIC;
+           A : in STD_LOGIC_VECTOR(n_bits_data downto 0);
+           B : in STD_LOGIC_VECTOR(n_bits_data downto 0);
+           X : out STD_LOGIC_VECTOR(n_bits_data downto 0)
+       );
+    END COMPONENT;
    
 	COMPONENT PC_register
 	   PORT( 
