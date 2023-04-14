@@ -72,8 +72,17 @@ ARCHITECTURE struct OF mips_single_cycle IS
    SIGNAL relative_address        : std_logic_vector (n_bits_address - 1 DOWNTO 0); 
    SIGNAL branch_taken            : std_logic;
 
-   --Mux Signals--
-
+   --Mux1 Signals--
+    SIGNAL mux_SEL1    : std_logic;
+    SIGNAL mux_A1      : STD_LOGIC_VECTOR(n_bits_data downto 0);
+    SIGNAL mux_B1      : STD_LOGIC_VECTOR(n_bits_data downto 0);
+    SIGNAL mux_X1      : STD_LOGIC_VECTOR(n_bits_data downto 0);
+    
+   --Mux2 Signals
+    SIGNAL mux_SEL2    : std_logic;
+    SIGNAL mux_A2      : STD_LOGIC_VECTOR(n_bits_data downto 0);
+    SIGNAL mux_B2      : STD_LOGIC_VECTOR(n_bits_data downto 0);
+    SIGNAL mux_X2      : STD_LOGIC_VECTOR(n_bits_data downto 0);
    -- Component Declarations
    
     COMPONENT Multiplexer
@@ -83,6 +92,12 @@ ARCHITECTURE struct OF mips_single_cycle IS
            B : in STD_LOGIC_VECTOR(n_bits_data downto 0);
            X : out STD_LOGIC_VECTOR(n_bits_data downto 0)
        );
+    END COMPONENT;
+    
+    COMPONENT Adder
+    PORT ( PC_cur : in STD_LOGIC_VECTOR(n_bits_data - 1 downto 0);
+           PC_inc : out STD_LOGIC_VECTOR(n_bits_data - 1 downto 0)
+    );
     END COMPONENT;
    
 	COMPONENT PC_register
@@ -183,8 +198,8 @@ BEGIN
         PC_current => PC_current,
         clk => clk,
         rst => rst
-        );
-   	
+        );    
+   	 
     InstrMem_inst : InstrMem
 	   PORT map ( 
 	      A     => InstrMem_A ,
@@ -204,7 +219,7 @@ BEGIN
 	   );
 	   ALU_ALUControl <= CU_ALUControl;
 	   ALU_A <= RegFile_RD1;
-	
+	   ALU_B <= mux_X2;
 		
 	DataMem_inst : DataMem
 	   PORT MAP( 
@@ -217,6 +232,7 @@ BEGIN
 	   );
 	DataMem_A <= ALU_C;
 	DataMem_MemWrite <= CU_MemWrite;
+	DataMem_WD <= RegFile_RD2;
 	
 	CU_inst : CU
 	   PORT MAP( 
@@ -246,6 +262,30 @@ BEGIN
     RegFile_RegWrite <= CU_RegWrite;
     RegFile_RA1 <= InstrMem_Instr(rs_end downto rs_start);
     RegFile_RA2 <= InstrMem_Instr(rt_end downto rt_start);
+    RegFile_WA <= mux_X1;
+    
+     mux1_inst:  Multiplexer
+       PORT MAP( 
+           SEL => mux_SEL1,
+           A   => mux_A1,
+           B   => mux_B1,
+           X   => mux_X1
+       );
+     mux_SEL1 <= CU_RegDst;
+     mux_A1 <= InstrMem_Instr(rt_end downto rt_start);
+     mux_B1 <= InstrMem_Instr(rd_end downto rd_start);
+     
+     mux2_inst: Multiplexer
+        PORT MAP(
+            SEL => mux_SEL2,
+            A   => mux_A2,
+            B   => mux_B2,
+            X   => mux_X2
+        );
+     mux_SEL2 <= CU_ALUSrc;
+     mux_A2 <= RegFile_RD2;
+     mux_B2 <= std_logic_vector( resize( signed(InstrMem_Instr(rd_end downto 0)), mux_B2'length));
+     
    ----------------------------------
 
 END struct;
