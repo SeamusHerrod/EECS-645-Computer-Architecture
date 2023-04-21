@@ -27,9 +27,7 @@ BEGIN
    -- **************************** --
    
    ----- insert your code here ------
-   -- Process that combines address guard, and multiplexer for read port
-   ---------------------------------------------------------------------------
-   read_port : PROCESS (A, data_mem)
+read_port : PROCESS (A, data_mem)
    ---------------------------------------------------------------------------
    BEGIN
       RD <= (OTHERS => '0');
@@ -55,8 +53,7 @@ BEGIN
       END IF;
    END PROCESS write_port;
 
+
    ----------------------------------    
 
 END behav;
-
-

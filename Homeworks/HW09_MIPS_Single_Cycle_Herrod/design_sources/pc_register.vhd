@@ -21,16 +21,17 @@ BEGIN
    -- **************************** --
    
    ----- insert your code here ------
-  PC_reg: process ( clk, rst )
-  BEGIN
-  
-    IF ( rst = '1' ) THEN
-        PC_current <= text_segment_start;
-    ELSIF ( clk'EVENT AND clk = '1' ) THEN
-        PC_current <= PC_next;
-    END IF;
-  
-  END PROCESS;
+PC_register_process : PROCESS (clk, rst, PC_next)
+BEGIN
+IF (rst = '1') THEN
+    PC_current <= text_segment_start;
+ELSIF (clk'EVENT AND clk = '1') THEN
+    PC_current <= PC_next;
+END IF;
+
+END PROCESS PC_register_process;
+
+
    ----------------------------------
    
 END behav;
