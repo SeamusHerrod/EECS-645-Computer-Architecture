@@ -166,6 +166,21 @@ BEGIN
    -- **************************** --
    
    ----- insert your code here ------
+  
+CU_inst :   CU
+    PORT MAP (
+          Instr      => CU_Instr,
+	      ALUControl => CU_ALUControl,
+	      ALUSrc     => CU_ALUSrc,
+	      BEQ        => CU_BEQ,
+	      J          => CU_J,
+	      MemToReg   => CU_MemToReg,
+	      MemWrite   => CU_MemWrite,
+	      RegDst     => CU_RegDst,
+	      RegWrite   => CU_RegWrite
+    );
+CU_Instr <= InstrMem_Instr;
+    
 PC_register_inst :   PC_register
     PORT MAP (
         PC_next     =>  PC_next,
@@ -173,7 +188,34 @@ PC_register_inst :   PC_register
         rst         =>  rst,
         PC_current  =>  PC_current
     );
-PC_current <= PC_next;
+PC_inc <= std_logic_vector((unsigned( PC_current )) + 4);
+
+-- PC conditional branch -- 
+relative_address( 31 downto 2 ) <= immediate_Sign_Extended( 29 downto 0 );
+PC_cond_branch <= std_logic_vector( signed( PC_inc ) + signed( relative_address ) );
+
+-- PC unconditional branch --
+PC_uncond_branch( 31 downto 28 ) <= PC_inc( 31 downto 28 );
+PC_uncond_branch( 27 downto 2 ) <= InstrMem_Instr( 25 downto 0 );
+PC_uncond_branch( 1 downto 0 ) <= (others => '0'); 
+
+-- branch taken mux--
+PROCESS ( PC_uncond_branch, PC_cond_branch, CU_J, CU_BEQ, ALU_zero, PC_inc )
+BEGIN
+    IF ( CU_J = '1' ) THEN 
+        PC_next <= PC_uncond_branch;
+    ELSE
+        IF( CU_BEQ = '1' AND ALU_zero ='1' ) THEN
+            PC_next <= PC_cond_branch;
+        ELSE
+            PC_next <= PC_inc;
+        END IF;
+    END IF;
+
+END PROCESS; 
+
+
+
 
 InstrMem_inst   :   InstrMem
     PORT MAP (
@@ -197,16 +239,16 @@ RegFile_inst    :   RegFile
     );
 RegFile_RA1 <=  InstrMem_Instr( rs_end downto rs_start );
 RegFile_RA2 <=  InstrMem_Instr( rt_end downto rt_start );
+RegFile_RegWrite <= CU_RegWrite;
 
 -- RegFile Write Data Mux --
-WriteDataMux    :   PROCESS ( CU_RegDst, InstrMem_Instr )
+PROCESS ( CU_RegDst, InstrMem_Instr )
 BEGIN
     IF ( CU_RegDst = '1' ) THEN
-        RegFile_WA  <=  InstrMem_Instr( rd_end downto rd_start );
+        RegFile_WA  <=  InstrMem_Instr( 15 downto 11 );
     ELSE
-        RegFile_WA  <=  InstrMem_Instr( rt_end downto rt_start );
+        RegFile_WA  <=  InstrMem_Instr( 20 downto 16 );
     END IF;
-    
 END PROCESS;
 
 ALU_inst    :   ALU
@@ -219,8 +261,43 @@ ALU_inst    :   ALU
         overflow   =>  ALU_overflow
     );
 ALU_A   <=  RegFile_RD1;
+ALU_ALUControl <= CU_ALUControl;
+
 --  sign extend InstrMem_Instr( 15 downto 0 ), 16 -> 32 bits
-immediate_Sign_Extended <= std_logic_vector( resize( signed( InstrMem_Instr( 15 downto 0 ) ), n_bits_ALU ) );
+immediate_Sign_Extended <= std_logic_vector( resize( signed( InstrMem_Instr( 15 downto 0 ) ), n_bits_data ) );
+
+-- ALU_B source Mux --
+PROCESS( immediate_Sign_Extended, RegFile_RD2 )
+BEGIN
+    IF ( CU_ALUSrc = '1' ) THEN
+        ALU_B <= immediate_Sign_Extended;
+    ELSE
+        ALU_B <= RegFile_RD2;
+    END IF;
+END PROCESS;
+
+DataMem_Inst    :   DataMem
+    PORT MAP (
+          A        => DataMem_A,
+	      MemWrite => DataMem_MemWrite,
+	      WD       => DataMem_WD,
+	      clk      => clk,
+	      rst      => rst,
+	      RD       => DataMem_RD
+    ); 
+DataMem_A <= ALU_C;
+DataMem_WD <= RegFile_RD2;
+DataMem_MemWrite <= CU_MemWrite;
+
+-- Mem to write mux 
+PROCESS ( DataMem_RD, ALU_C )
+BEGIN
+    IF ( CU_MemToReg = '1' ) THEN 
+        RegFile_WD <= DataMem_RD;
+    ELSE
+        RegFile_WD <= ALU_C;
+    END IF;
+END PROCESS;
    ----------------------------------
 
 END struct;

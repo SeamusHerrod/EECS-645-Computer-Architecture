@@ -52,7 +52,7 @@ BEGIN
 
    -- Process that combines inferred registers, write-enable, and address guard for the write port
    ---------------------------------------------------------------------------
-   write_port : PROCESS (clk, rst)
+   write_port : PROCESS (clk, rst, RegWrite, WD)
    ---------------------------------------------------------------------------
    BEGIN
       -- Asynchronous Reset

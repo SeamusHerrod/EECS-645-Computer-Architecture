@@ -29,6 +29,7 @@ BEGIN
     Instr <= (OTHERS => '0'); -- Default instruction is NOP (No OPeration)
     IF (rst = '1') THEN
         instr_mem <= my_program; -- Asynchronous reset mimicking program load
+        Instr <= ( others => '0' );
     ELSE
         IF (( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 > 0 AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 < instr_mem_depth) THEN -- Address guard for read port
             Instr <= instr_mem(( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4); -- Read operation

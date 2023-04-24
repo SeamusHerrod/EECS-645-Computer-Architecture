@@ -31,7 +31,7 @@ read_port : PROCESS (A, data_mem)
    ---------------------------------------------------------------------------
    BEGIN
       RD <= (OTHERS => '0');
-      IF (( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 > to_integer( unsigned( data_segment_start ) ) AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 < (to_integer(unsigned(TOS)) - 32 )) THEN
+      IF (( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 > to_integer( unsigned( data_segment_start ) ) AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 < to_integer(unsigned(TOS))) THEN
          RD <= data_mem((to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4);
       END IF;
    END PROCESS read_port;   
@@ -47,7 +47,7 @@ read_port : PROCESS (A, data_mem)
          data_mem <= initial_data_mem;
       ELSIF (clk'EVENT AND clk = '1') THEN -- inferred registers
          -- Write-enable, and address guard for write operation
-         IF ((MemWrite = '1') AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 > to_integer( unsigned( data_segment_start ) ) AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 < (to_integer(unsigned(TOS)) - 32 )) THEN
+         IF ((MemWrite = '1') AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 > to_integer( unsigned( data_segment_start ) ) AND ( to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4 < (to_integer(unsigned(TOS)) )) THEN
             data_mem((to_integer( unsigned( A ) ) - to_integer( unsigned( text_segment_start)) )/4) <= WD;
          END IF;
       END IF;

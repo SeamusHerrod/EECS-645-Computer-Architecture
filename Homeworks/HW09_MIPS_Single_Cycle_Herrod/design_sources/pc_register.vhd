@@ -26,6 +26,7 @@ BEGIN
 IF (rst = '1') THEN
     PC_current <= text_segment_start;
 ELSIF (clk'EVENT AND clk = '1') THEN
+    
     PC_current <= PC_next;
 END IF;
 
