@@ -1,6 +1,0 @@
-Time resolution is 1 ps
-ERROR: Array sizes do not match, left array has 32 elements, right array has 16 elements
-Time: 0 ps  Iteration: 0  Process: /mips_single_cycle_tb/uut/ALU_inst/line__38
-  File: C:/Users/sherman/OneDrive/EECS 645/Homeworks/Project_MIPS_Single_Cycle_Herrod/design_sources/alu.vhd
-
-HDL Line: C:/Users/sherman/OneDrive/EECS 645/Homeworks/Project_MIPS_Single_Cycle_Herrod/design_sources/alu.vhd:38
